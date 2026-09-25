@@ -1,0 +1,11 @@
+# Large datasets (>100 MB, over GitHub's file limit) - kept locally only
+data/master_table_FULLdec.xlsx
+data/full_dec_cnn.xlsx
+
+# Generated artifacts
+*.h5
+*.pkl
+training_log.csv
+__pycache__/
+*.pyc
+~$*
