@@ -254,7 +254,9 @@ On the 60,690 test trajectories, from `full_dec_cnn.xlsx`:
 | Trajectories meeting `R_min` | MILP 100%, **CNN 40.2%** |
 | Mean bits delivered per trajectory | CNN = 85% of MILP |
 
-The Hybrid's test predictions file is not in the folder, so its test accuracy could not be checked here.
+The same check on the Hybrid's predictions (`master_table_FULLdec_with_predictions.xlsx`, kept locally) gives
+**92.9%** per-waypoint accuracy, recall 95.8% / 96.8% / **74.8%**, 32.0% exact sequence match, 62.5% of trajectories
+meeting `R_min` and 96.5% of the MILP's mean bits. Script: `02_data_checks/evaluate_predictions.py`.
 **Key insight:** per-waypoint accuracy alone overstates quality. The learned schedule can
 violate the MILP's hard communication constraint. A good follow-up is to report
 constraint-satisfaction rate and to add a feasibility repair step (for example, switch the last

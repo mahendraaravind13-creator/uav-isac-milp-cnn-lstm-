@@ -153,12 +153,16 @@ through its own branch before the branches are merged.
 
 | Metric | Hybrid CNN-LSTM | CNN |
 |---|:---:|:---:|
-| Final training accuracy | **~96.7%** | ~81% |
-| Test per-waypoint accuracy (60,690 trajectories) | n/a† | 86.5% |
-| Test recall: Sensing / Comm / Joint | n/a† | 93.8% / 95.9% / 41.3% |
-| Test trajectories meeting `R_min` (MILP = 100%) | n/a† | 40.2% |
+| Final training accuracy | ~96.7% | ~81% |
+| **Test per-waypoint accuracy (60,690 unseen trajectories)** | **92.9%** | 86.5% |
+| Test recall: Sensing / Comm / Joint | 95.8% / 96.8% / **74.8%** | 93.8% / 95.9% / 41.3% |
+| Entire 15-waypoint sequence matches MILP | **32.0%** | 7.8% |
+| Test trajectories meeting `R_min` (MILP = 100%) | 62.5% | 40.2% |
+| Mean bits delivered, model / MILP | 96.5% | 85.1% |
 
-† The Hybrid prediction file is not included in this repository.
+Test metrics come from [`02_data_checks/evaluate_predictions.py`](02_data_checks/evaluate_predictions.py), run on both
+prediction files. The files are over GitHub's 100 MB limit, so they are kept locally. The same script reproduces the
+previously reported CNN numbers exactly, which validates the method.
 
 Figures (see [`results/`](results/results_figures_milp_vs_hybrid_vs_cnn.pdf)):
 - **Loss / accuracy vs epoch** for both models
