@@ -1,4 +1,4 @@
-# Learning MILP-Optimal Sensing & Communication Scheduling for an ISAC UAV
+﻿# Learning MILP-Optimal Sensing & Communication Scheduling for an ISAC UAV
 
 > A UAV flies a 15-waypoint path and, at every waypoint, must choose to **sense** ground targets,
 > **communicate** with ground users, or do **both**. A Mixed-Integer Linear Program (MILP) finds the
@@ -36,7 +36,7 @@ built the data-driven pipeline on top of it:
 
 | Stage | What I did |
 |---|---|
-| **1. MILP code refinement** | Adapted the given MATLAB MILP into a dataset generator. Each environment now draws a random `R_min` (1e7–3e8 bits) and a random early-communication fraction `p` (0.1–0.9) instead of one fixed value. I replaced fixed CU/ST positions with random ones and the straight-line path with a random trajectory, and added a per-waypoint feature table (distances, PsiComm, PsiSense, constraints, label). |
+| **1. MILP code refinement** | Adapted the given MATLAB MILP into a dataset generator. Each environment now draws a random `R_min` (1e7â€“3e8 bits) and a random early-communication fraction `p` (0.1â€“0.9) instead of one fixed value. I replaced fixed CU/ST positions with random ones and the straight-line path with a random trajectory, and added a per-waypoint feature table (distances, PsiComm, PsiSense, constraints, label). |
 | **2. Large-scale datasets** | Ran the generator to build a **training set of 6,000 trajectories (90,000 rows)** and a separate **test set of 60,690 trajectories (910,350 rows)**. The test set also keeps CU/ST coordinates so performance can be recomputed. |
 | **3. Model design & training** | Framed the task as per-waypoint 3-class **sequence labelling**. Designed a **3-branch Hybrid Conv3D-LSTM** and a **lightweight 3-branch CNN** baseline, covering preprocessing, feature grouping, scaling, regularisation and class-prior bias init. Trained both for 500 epochs in TensorFlow/Keras. |
 | **4. Inference** | Wrote prediction scripts that label all 60,690 unseen test trajectories. |
@@ -52,7 +52,7 @@ built the data-driven pipeline on top of it:
 | **2** | Communication only | user data rate |
 | **3** | Joint ISAC (sense + communicate) | both |
 
-**Goal:** maximise sensing accuracy (minimise the localisation Cramér-Rao Bound) while
+**Goal:** maximise sensing accuracy (minimise the localisation CramÃ©r-Rao Bound) while
 guaranteeing that the users receive at least `R_min` bits over the flight, with communication
 prioritised early in the flight.
 
@@ -90,11 +90,11 @@ flowchart LR
 | Wavelength, noise power | 0.1 m, 1e-9 W |
 
 **Communication metric `PsiComm`:** mean bits delivered to a CU at a waypoint,
-`T_h · (B/M) · log2(1 + Pt·α0 / (d²·σ²))`. Higher is better.
+`T_h Â· (B/M) Â· log2(1 + PtÂ·Î±0 / (dÂ²Â·ÏƒÂ²))`. Higher is better.
 
-**Sensing metric `PsiSense`:** mean over targets of the **Cramér-Rao Bound**
-`trace(FIM⁻¹)` for 2-D target localisation. The FIM accumulates range measurements, each with
-variance ∝ d⁴ (two-way radar path loss). Lower is better. With a single look the FIM is singular,
+**Sensing metric `PsiSense`:** mean over targets of the **CramÃ©r-Rao Bound**
+`trace(FIMâ»Â¹)` for 2-D target localisation. The FIM accumulates range measurements, each with
+variance âˆ dâ´ (two-way radar path loss). Lower is better. With a single look the FIM is singular,
 so the bound is stored as `1e18`.
 
 ---
@@ -104,13 +104,13 @@ so the bound is stored as `1e18`.
 Binary variables `x_j1, x_j2, x_j3` for each waypoint j (45 binaries):
 
 ```
-minimise   Σ_j [ −fs_j·x_j1 + η·x_j2 + (−fs_j + η)·x_j3 ]      fs_j = 1/PsiSense_j,  η = 1e-4
+minimise   Î£_j [ âˆ’fs_jÂ·x_j1 + Î·Â·x_j2 + (âˆ’fs_j + Î·)Â·x_j3 ]      fs_j = 1/PsiSense_j,  Î· = 1e-4
 subject to x_j1 + x_j2 + x_j3 = 1                               (one mode per waypoint)
-           Σ_j PsiComm_j·(x_j2 + x_j3) ≥ R_min                  (communication requirement)
-           x_j1 = x_j3 = 0  while cumulative comm < p·R_min     (communicate-first rule)
+           Î£_j PsiComm_jÂ·(x_j2 + x_j3) â‰¥ R_min                  (communication requirement)
+           x_j1 = x_j3 = 0  while cumulative comm < pÂ·R_min     (communicate-first rule)
 ```
 
-The typical optimal schedule is **communicate → joint → sense-only**. Every trajectory
+The typical optimal schedule is **communicate â†’ joint â†’ sense-only**. Every trajectory
 starts in mode 2, and mode 2 disappears after about waypoint 10.
 
 ---
@@ -126,9 +126,9 @@ starts in mode 2, and mode 2 disappears after about waypoint 10.
 \* Over GitHub's 100 MB file limit, so kept locally and excluded from the repo.
 
 **Features (per waypoint):** `X, Y, MeanDistCU, MinDistCU, MaxDistCU, MeanDistST, MinDistST,
-MaxDistST, PsiComm, PsiSense, Rmin, FractionP` → `Label ∈ {1,2,3}`
+MaxDistST, PsiComm, PsiSense, Rmin, FractionP` â†’ `Label âˆˆ {1,2,3}`
 
-**Class balance:** Sensing 62.5% · Communication 22.6% · Joint 15.0%
+**Class balance:** Sensing 62.5% Â· Communication 22.6% Â· Joint 15.0%
 
 ---
 
@@ -140,11 +140,11 @@ through its own branch before the branches are merged.
 
 | | **Hybrid Conv3D-LSTM** | **Lightweight CNN** (baseline) |
 |---|---|---|
-| Branch | Conv3D(3x1x3) → BN → Conv3D(1x1x3) → BN → Dense 128 → **LSTM 128** → Dense 64 | GaussianNoise → Conv2D(3x1) → Dense 16 |
-| Head | Dense 128 → BN → Dense 3 → softmax | Dense 32 → Dense 3 → temperature softmax (T=1.3) |
-| Temporal context | full sequence (LSTM memory) | ±1 waypoint only |
+| Branch | Conv3D(3x1x3) â†’ BN â†’ Conv3D(1x1x3) â†’ BN â†’ Dense 128 â†’ **LSTM 128** â†’ Dense 64 | GaussianNoise â†’ Conv2D(3x1) â†’ Dense 16 |
+| Head | Dense 128 â†’ BN â†’ Dense 3 â†’ softmax | Dense 32 â†’ Dense 3 â†’ temperature softmax (T=1.3) |
+| Temporal context | full sequence (LSTM memory) | Â±1 waypoint only |
 | Regularisation | Dropout 0.5, BatchNorm | Dropout 0.6, Gaussian noise, grad-clip 0.3 |
-| Imbalance handling | none | output bias = 1.5·log(class priors) |
+| Imbalance handling | none | output bias = 1.5Â·log(class priors) |
 | Optimiser | Adam 3e-4, batch 16, 500 epochs | Adam 3e-5, batch 32, 500 epochs |
 
 ---
@@ -156,7 +156,7 @@ through its own branch before the branches are merged.
 | Final training accuracy | ~96.7% | ~81% |
 | **Test per-waypoint accuracy (60,690 unseen trajectories)** | **92.9%** | 86.5% |
 | Test recall: Sensing / Comm / Joint | 95.8% / 96.8% / **74.8%** | 93.8% / 95.9% / 41.3% |
-| Entire 15-waypoint sequence matches MILP | **32.0%** | 7.8% |
+| Entire 15-waypoint sequence matches MILP | **32.0%** | 7.7% |
 | Test trajectories meeting `R_min` (MILP = 100%) | 62.5% | 40.2% |
 | Mean bits delivered, model / MILP | 96.5% | 85.1% |
 
@@ -178,27 +178,27 @@ along the trajectory.
 ## Repository Structure
 
 ```
-├── 01_dataset_generation/
-│   └── generate_dataset_milp.m                  # random envs → PsiComm/PsiSense → MILP labels
-├── 02_data_checks/
-│   ├── check_dataset_files_and_shapes.py
-│   └── check_prediction_file_columns.py
-├── 03_models/
-│   ├── hybrid_cnn_lstm/
-│   │   ├── train_hybrid_cnn_lstm.py
-│   │   └── predict_hybrid_cnn_lstm.py
-│   └── cnn/
-│       ├── train_cnn.py
-│       └── predict_cnn.py
-├── 04_evaluation_graphs/
-│   ├── training_curves/   plot_loss_vs_epoch.py, plot_accuracy_vs_epoch.py
-│   ├── cdf_plots/         cdf_sensing_milp_vs_hybrid.py, cdf_sensing_milp_vs_cnn.py,
-│   │                      cdf_communication_milp_vs_hybrid.py
-│   └── sweep_plots/       sweep_sensing_vs_num_st_hybrid.py, sweep_communication_vs_num_cu_hybrid.py,
-│                          sweep_sensing_and_communication_cnn.py
-├── data/                  # training set (test sets kept locally)
-├── results/               # compiled result figures (PDF)
-└── docs/PROJECT_EXPLANATION.md
+â”œâ”€â”€ 01_dataset_generation/
+â”‚   â””â”€â”€ generate_dataset_milp.m                  # random envs â†’ PsiComm/PsiSense â†’ MILP labels
+â”œâ”€â”€ 02_data_checks/
+â”‚   â”œâ”€â”€ check_dataset_files_and_shapes.py
+â”‚   â””â”€â”€ check_prediction_file_columns.py
+â”œâ”€â”€ 03_models/
+â”‚   â”œâ”€â”€ hybrid_cnn_lstm/
+â”‚   â”‚   â”œâ”€â”€ train_hybrid_cnn_lstm.py
+â”‚   â”‚   â””â”€â”€ predict_hybrid_cnn_lstm.py
+â”‚   â””â”€â”€ cnn/
+â”‚       â”œâ”€â”€ train_cnn.py
+â”‚       â””â”€â”€ predict_cnn.py
+â”œâ”€â”€ 04_evaluation_graphs/
+â”‚   â”œâ”€â”€ training_curves/   plot_loss_vs_epoch.py, plot_accuracy_vs_epoch.py
+â”‚   â”œâ”€â”€ cdf_plots/         cdf_sensing_milp_vs_hybrid.py, cdf_sensing_milp_vs_cnn.py,
+â”‚   â”‚                      cdf_communication_milp_vs_hybrid.py
+â”‚   â””â”€â”€ sweep_plots/       sweep_sensing_vs_num_st_hybrid.py, sweep_communication_vs_num_cu_hybrid.py,
+â”‚                          sweep_sensing_and_communication_cnn.py
+â”œâ”€â”€ data/                  # training set (test sets kept locally)
+â”œâ”€â”€ results/               # compiled result figures (PDF)
+â””â”€â”€ docs/PROJECT_EXPLANATION.md
 ```
 
 ---
@@ -240,7 +240,7 @@ A full walkthrough covering every stage, input/output shapes, graph interpretati
 Q&A is in [docs/PROJECT_EXPLANATION.md](docs/PROJECT_EXPLANATION.md).
 
 <details>
-<summary>File rename map (original → current)</summary>
+<summary>File rename map (original â†’ current)</summary>
 
 | Original | Current |
 |---|---|
