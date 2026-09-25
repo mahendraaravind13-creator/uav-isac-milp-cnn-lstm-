@@ -13,6 +13,7 @@
 ---
 
 ## Table of Contents
+- [My Contribution](#my-contribution)
 - [Problem](#problem)
 - [Pipeline](#pipeline)
 - [System Model](#system-model)
@@ -24,6 +25,22 @@
 - [How to Run](#how-to-run)
 - [Limitations & Future Work](#limitations--future-work)
 - [Documentation](#documentation)
+
+---
+
+## My Contribution
+
+The **MILP optimisation formulation** (system model, CRB-based sensing metric, communication
+constraint and communicate-first rule) was **provided by my faculty advisor**. My work
+built the data-driven pipeline on top of it:
+
+| Stage | What I did |
+|---|---|
+| **1. MILP code refinement** | Adapted the given MATLAB MILP into a dataset generator. Each environment now draws a random `R_min` (1e7–3e8 bits) and a random early-communication fraction `p` (0.1–0.9) instead of one fixed value. I replaced fixed CU/ST positions with random ones and the straight-line path with a random trajectory, and added a per-waypoint feature table (distances, PsiComm, PsiSense, constraints, label). |
+| **2. Large-scale datasets** | Ran the generator to build a **training set of 6,000 trajectories (90,000 rows)** and a separate **test set of 60,690 trajectories (910,350 rows)**. The test set also keeps CU/ST coordinates so performance can be recomputed. |
+| **3. Model design & training** | Framed the task as per-waypoint 3-class **sequence labelling**. Designed a **3-branch Hybrid Conv3D-LSTM** and a **lightweight 3-branch CNN** baseline, covering preprocessing, feature grouping, scaling, regularisation and class-prior bias init. Trained both for 500 epochs in TensorFlow/Keras. |
+| **4. Inference** | Wrote prediction scripts that label all 60,690 unseen test trajectories. |
+| **5. Evaluation & graphs** | Built evaluation scripts, including a **Numba-accelerated CRB recomputation** from predicted labels. They produce training curves, CDFs of sensing and communication performance (MILP vs model) and performance sweeps. I compiled these into the results report. |
 
 ---
 

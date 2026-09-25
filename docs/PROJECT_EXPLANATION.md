@@ -6,6 +6,33 @@ something without stating why, the **"What the code does"** part is fact and the
 
 ---
 
+## 0. Who did what
+
+**Provided by faculty advisor:** the MILP optimisation formulation and base MATLAB code. That
+covers the system model, PsiComm (rate) and PsiSense (CRB) metrics, the objective, the `R_min`
+constraint and the communicate-first rule.
+
+**My work:**
+1. **Refined the MILP code into a dataset generator.** The commented-out lines in
+   `generate_dataset_milp.m` show the original setup: a single fixed `R_min` / `p_fraction`,
+   fixed CU/ST coordinates, and a straight-line trajectory. I changed it to draw a random `R_min`
+   and `p_fraction` per environment, random CU/ST positions and a random trajectory, and to
+   export a per-waypoint feature table with the MILP label.
+2. **Generated large datasets:** 6,000 trajectories (90,000 rows) for training and 60,690
+   trajectories (910,350 rows) for testing, with CU/ST coordinates kept for evaluation.
+3. **Designed and trained the models:** the 3-branch Hybrid Conv3D-LSTM and the lightweight CNN
+   (Sections 5–6). This included preprocessing, feature grouping, scaling, regularisation, the
+   class-prior bias and the temperature softmax.
+4. **Inference:** prediction scripts for all unseen test trajectories.
+5. **Evaluation:** training curves, Numba-accelerated CRB recomputation for the sensing CDFs,
+   communication CDFs and sweeps, compiled into the results PDF.
+
+**How to say it in an interview:** "My faculty gave me the MILP formulation. I turned it into
+a large-scale randomised dataset generator, built and trained the deep models that imitate
+the optimiser, and did the full evaluation."
+
+---
+
 ## 1. The research problem in one paragraph
 
 A UAV (drone) flies over a 500 m x 300 m area at 70 m altitude, from (0,0) to (500,300),
@@ -255,11 +282,12 @@ sensing waypoints to joint mode until `R_min` is met).
 
 > "I worked on scheduling for an integrated sensing and communication (ISAC) UAV. At each of
 > 15 waypoints the drone must either sense ground targets, serve communication users, or do
-> both. I formulated this as a MILP: it maximises sensing accuracy, measured by the inverse
-> Cramér-Rao bound on target localisation, subject to a minimum total data-rate constraint and a
-> rule that communication is prioritised early in the flight. I generated labelled data by
-> solving the MILP over thousands of random environments, with 6,000 trajectories for
-> training and about 60,000 for testing. Because solving a MILP per environment is too slow for
+> both. My faculty advisor provided a MILP formulation: it maximises sensing accuracy, measured
+> by the inverse Cramér-Rao bound on target localisation, subject to a minimum total data-rate
+> constraint and a rule that communication is prioritised early in the flight. I refined that
+> code into a randomised dataset generator, with random requirements, user and target positions,
+> and trajectories. I generated labelled data by solving the MILP over thousands of random
+> environments, with 6,000 trajectories for training and about 60,000 for testing. Because solving a MILP per environment is too slow for
 > real time, I trained deep networks to imitate it as a per-waypoint 3-class sequence-labelling
 > problem. I compared a lightweight CNN against a hybrid Conv3D-LSTM. The hybrid reached about
 > 97% training accuracy versus 81% for the CNN, and its CDFs of sensing and communication
